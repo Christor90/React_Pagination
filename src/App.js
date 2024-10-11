@@ -3,16 +3,21 @@ import { useEffect, useState } from 'react';
 export default function App() {
   const [products, setProducts] = useState([]);
   const [page, setPage] = useState(1);
+  const [loading, setLoading] = useState(false);
   // const [totalPages setTotalPages] = useState(0);
 
   const fetchProducts = async () => {
-    const res = await fetch('https://dummyjson.com/products?limit=100');
-    const data = await res.json();
+    try {
+      setLoading(true);
+      const res = await fetch('https://dummyjson.com/products?limit=100');
+      const data = await res.json();
+      console.log(data, 'Data gotten from APi successfully');
 
-    console.log('Data returned successfully');
-    console.log(data);
-    if (data && data.products) {
       setProducts(data.products);
+    } catch (error) {
+      console.log.error('Error Fetching products:', error);
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -24,9 +29,10 @@ export default function App() {
     if (
       selectedPage >= 1 &&
       selectedPage !== page &&
-      selectedPage <= products.length / 10
-    )
+      selectedPage <= Math.ceil(products.length / 10)
+    ) {
       setPage(selectedPage);
+    }
   };
 
   return (
@@ -34,18 +40,21 @@ export default function App() {
       <h1 className="text-center text-4xl py-20 text-slate-600">
         React Pagination
       </h1>
-
-      {products.length && (
-        <div className="grid sm:grid-cols-2 lg:grid-cols-3 p-20">
-          {products.slice(page * 10 - 10, page * 10).map((prod) => {
-            return (
-              <div className="">
-                <img className="" src={prod.thumbnail} alt="product img" />
-                <p className="text-center">{prod.title}</p>
-              </div>
-            );
-          })}
-        </div>
+      {loading ? (
+        <h1 className="text-center text-2xl">Loading.. Please wait...</h1>
+      ) : (
+        products.length > 0 && (
+          <div className="grid sm:grid-cols-2 lg:grid-cols-3 p-20 bg-red-300 gap-6">
+            {products.slice(page * 10 - 10, page * 10).map((prod) => {
+              return (
+                <div className="bg-white shadow-md">
+                  <img className="" src={prod.thumbnail} alt="product img" />
+                  <p className="text-center">{prod.title}</p>
+                </div>
+              );
+            })}
+          </div>
+        )
       )}
 
       {products.length && (
